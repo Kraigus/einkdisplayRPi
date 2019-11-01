@@ -1,0 +1,30 @@
+FROM resin/raspberrypi3-debian:stretch
+
+WORKDIR /app
+
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends libcurl4-openssl-dev python3-pip libpython3-dev libboost-python1.62.0 libjpeg-dev libtiff-dev libopenjp2-7 libfreetype6-dev locales && \
+   rm -rf /var/lib/apt/lists/* 
+
+# Set the locale
+ENV TZ=Europe/Moscow
+ENV LANG=ru_RU.UTF-8  
+ENV LANGUAGE=ru_RU:ru  
+ENV LC_ALL=ru_RU.UTF-8 
+RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
+RUN sed -i -e 's/# ru_RU.UTF-8 UTF-8/ru_RU.UTF-8 UTF-8/' /etc/locale.gen && \
+    locale-gen
+
+RUN apt-get update && apt-get upgrade
+
+
+
+RUN pip3 install --upgrade pip 
+RUN pip install --upgrade setuptools
+RUN apt install python3-pillow 
+COPY requirements.txt ./
+RUN pip install -r requirements.txt
+
+COPY . .
+
+ENTRYPOINT [ "python3", "-u", "./exchange_calendar.py" ]
